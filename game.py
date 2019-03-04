@@ -2,6 +2,7 @@ from enum import Enum
 from random import sample
 from settings import Settings
 from strings import Strings
+from ext import enqueue
 from player import Player
 from card import Card
 
@@ -70,7 +71,7 @@ class Game:
         self.current = (self.current + self.direction) % len(self.players)
         player = self.players[self.current]
         if player.is_available():
-            self.bot.send_message(Settings.CHAT_ID, Strings.TURN.format('@' + player.user.username))
+            enqueue(self.bot.send_message, Settings.CHAT_ID, Strings.TURN.format('@' + player.user.username))
             player.ask_discharge()
         else:
             player.burst()
@@ -80,7 +81,7 @@ class Game:
             self.next()
 
     def show_value(self):
-        self.bot.send_message(Settings.CHAT_ID, Strings.VALUE.format(str(self.value)))
+        enqueue(self.bot.send_message, Settings.CHAT_ID, Strings.VALUE.format(str(self.value)))
 
     def discharge(self, user, idx):
         player = self.players[self.current]

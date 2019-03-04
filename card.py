@@ -2,6 +2,7 @@ from enum import Enum
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from settings import Settings
 from strings import Strings
+from ext import enqueue
 
 suits = {
     'Clubs': '♣',
@@ -56,7 +57,7 @@ class Card:
 
     def ask_players(self, current_player):
         if len(self.game.players) > 2:
-            current_player.bot.send_message(current_player.chat.id, Strings.ASK_DESIGNATE,
+            enqueue(current_player.bot.send_message, current_player.chat.id, Strings.ASK_DESIGNATE,
                     reply_markup = InlineKeyboardMarkup([[
                         InlineKeyboardButton(player.user.first_name, callback_data = 'choose ' + str(i)) for i, player in enumerate(self.game.players) if player.user.id != current_player.user.id]]))
             return False
@@ -68,7 +69,7 @@ class Card:
         elif self.game.value >= 90:
             self.game.value -= 10
         else:
-            player.bot.send_message(player.chat.id, Strings.ASK_TEN,
+            enqueue(player.bot.send_message, player.chat.id, Strings.ASK_TEN,
                     reply_markup = InlineKeyboardMarkup([[
                         InlineKeyboardButton(ten, callback_data = 'choose ' + str(i)) for i, ten in enumerate(['+10', '-10'])]]))
             return False
@@ -80,7 +81,7 @@ class Card:
         elif self.game.value >= 80:
             self.game.value -= 20
         else:
-            player.bot.send_message(player.chat.id, Strings.ASK_TWENTY,
+            enqueue(player.bot.send_message, player.chat.id, Strings.ASK_TWENTY,
                     reply_markup = InlineKeyboardMarkup([[
                         InlineKeyboardButton(twenty, callback_data = 'choose ' + str(i)) for i, twenty in enumerate(['+20', '-20'])]]))
             return False
@@ -89,7 +90,7 @@ class Card:
     def choose(self, player, idx):
         if self.rank == 5:
             self.game.current = idx - self.game.direction
-            self.game.bot.send_message(Settings.CHAT_ID, Strings.DESIGNATED.format('@' + player.user.username, '@' + self.game.players[idx].user.username))
+            enqueue(self.game.bot.send_message, Settings.CHAT_ID, Strings.DESIGNATED.format('@' + player.user.username, '@' + self.game.players[idx].user.username))
         elif self.rank == 10:
             if idx == 0:
                 self.game.value += 10
