@@ -9,7 +9,8 @@ class Game:
     class Status(Enum):
         OFF = 1
         PREPARING = 2
-        ON = 3
+        OPEN = 3
+        STARTED = 4
 
     def __init__(self, bot):
         self.status = self.Status.OFF
@@ -24,21 +25,24 @@ class Game:
             raise
 
     def abort(self, user):
-        if self.status is not self.Status.OFF and Settings.ADMIN_ID == user.id:
+        if self.status is not self.Status.OFF and Settings.ADMIN_ID == user.id or (self.status is self.Status.PREPARING or self.status is self.Status.OPEN) and self.admin.id == user.id:
             self.status = self.Status.OFF
             self.players = []
         else:
             raise
 
     def add_player(self, user, chat):
-        if self.status is self.Status.PREPARING and not any(player.user.id == user.id for player in self.players):
+        if self.status is self.Status.PREPARING and len(self.players) == 0:
+            self.players.append(Player(self.bot, self, user, chat))
+            self.status = self.Status.OPEN
+        elif self.status is self.Status.OPEN and not any(player.user.id == user.id for player in self.players):
             self.players.append(Player(self.bot, self, user, chat))
         else:
             raise
 
     def start(self, user):
-        if self.players and self.admin.id == user.id and self.status is self.Status.PREPARING:
-            self.status = self.Status.ON
+        if self.admin.id == user.id and self.status is self.Status.OPEN and len(self.players) >= 2:
+            self.status = self.Status.STARTED
             self.run()
         else:
             raise

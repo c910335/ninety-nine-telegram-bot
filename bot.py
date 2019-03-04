@@ -8,40 +8,43 @@ updater = Updater(Settings.API_TOKEN)
 game = Game(updater.bot)
 
 join_message = None
+join_reply_markup = None
 
 def hello(bot, update):
     update.message.reply_text('hello, {}'.format(update.message.from_user.first_name))
 
 def new(bot, update):
     global join_message
+    global join_reply_markup
     if update.message.chat.id == Settings.CHAT_ID:
         game.new(update.message.from_user)
         update.message.reply_text(Strings.NEW)
-        join_message = bot.send_message(Settings.CHAT_ID, Strings.JOIN,
-                reply_markup = InlineKeyboardMarkup([[
-                    InlineKeyboardButton(Strings.JOIN_BUTTON, url = Settings.BOT_URL + '?start=join')]]))
-        bot.send_message(Settings.CHAT_ID, Strings.START.format('@' + update.message.from_user.username),
-                reply_markup = InlineKeyboardMarkup([[
-                    InlineKeyboardButton(Strings.START_BUTTON, callback_data = 'start')]]))
+        join_reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(Strings.JOIN_BUTTON, url = Settings.BOT_URL + '?start=join')]])
+        join_message = bot.send_message(Settings.CHAT_ID, Strings.ADMIN_JOIN.format('@' + update.message.from_user.username), reply_markup = join_reply_markup)
+
+def join(bot, update):
+    if update.message.chat.type == 'private' and update.message.text == '/start join':
+        status = game.status
+        game.add_player(update.message.from_user, update.message.chat)
+        update.message.reply_text(Strings.JOINED)
+        bot.send_message(Settings.CHAT_ID, Strings.NAMED_JOINED.format('@' + update.message.from_user.username))
+        if status is game.Status.PREPARING and game.status is game.Status.OPEN:
+            join_message.edit_text(Strings.JOIN, reply_markup = join_reply_markup)
+            bot.send_message(update.message.chat.id, Strings.START,
+                    reply_markup = InlineKeyboardMarkup([[
+                        InlineKeyboardButton(Strings.START_BUTTON, callback_data = 'start')]]))
 
 def abort(bot, update):
     if update.message.chat.id == Settings.CHAT_ID:
         game.abort(update.message.from_user)
         update.message.reply_text(Strings.ABORT)
 
-def join(bot, update):
-    if update.message.chat.type == 'private' and update.message.text == '/start join':
-        game.add_player(update.message.from_user, update.message.chat)
-        update.message.reply_text(Strings.JOINED)
-        bot.send_message(Settings.CHAT_ID, Strings.NAMED_JOINED.format('@' + update.message.from_user.username))
-
 def start(bot, update):
-    if update.callback_query.message.chat.id == Settings.CHAT_ID:
-        game.start(update.callback_query.from_user)
-        join_message.edit_reply_markup()
-        update.callback_query.edit_message_reply_markup()
-        bot.send_message(Settings.CHAT_ID, Strings.STARTED)
-        game.next()
+    game.start(update.callback_query.from_user)
+    join_message.edit_reply_markup()
+    update.callback_query.edit_message_reply_markup()
+    bot.send_message(Settings.CHAT_ID, Strings.STARTED)
+    game.next()
 
 def discharge(bot, update):
     game.discharge(update.callback_query.from_user, int(update.callback_query.data[-1]))
