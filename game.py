@@ -18,8 +18,8 @@ class Game:
         self.bot = bot
 
     def new(self, user):
-        self.admin = user
         if self.status is self.Status.OFF:
+            self.admin = user
             self.status = self.Status.PREPARING
         else:
             raise
