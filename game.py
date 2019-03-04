@@ -32,7 +32,7 @@ class Game:
             raise
 
     def add_player(self, user, chat):
-        if self.status is self.Status.PREPARING and len(self.players) == 0:
+        if self.admin.id == user.id and self.status is self.Status.PREPARING and len(self.players) == 0:
             self.players.append(Player(self.bot, self, user, chat))
             self.status = self.Status.OPEN
         elif self.status is self.Status.OPEN and not any(player.user.id == user.id for player in self.players):
