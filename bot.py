@@ -47,8 +47,8 @@ def start(bot, update):
     enqueue(bot.send_message, Settings.CHAT_ID, Strings.STARTED)
     game.next()
 
-def resume(bot, update):
-    return
+def rule(bot, update):
+    enqueue(update.message.reply_text, Strings.RULE, parse_mode = 'Markdown')
 
 def discharge(bot, update):
     game.discharge(update.callback_query.from_user, int(update.callback_query.data[-1]))
@@ -58,14 +58,18 @@ def choose(bot, update):
     game.choose(update.callback_query.from_user, int(update.callback_query.data[-1]))
     enqueue(update.callback_query.edit_message_reply_markup)
 
+def resume(bot, update):
+    return
+
 updater.dispatcher.add_handler(handle('command', hello))
 updater.dispatcher.add_handler(handle('command', new))
 updater.dispatcher.add_handler(handle('command', abort))
 updater.dispatcher.add_handler(handle('command', join, 'start'))
 updater.dispatcher.add_handler(handle('callback_query', start))
-updater.dispatcher.add_handler(handle('command', resume))
+updater.dispatcher.add_handler(handle('command', rule))
 updater.dispatcher.add_handler(handle('callback_query', discharge, '^discharge \d$'))
 updater.dispatcher.add_handler(handle('callback_query', choose, '^choose \d$'))
+updater.dispatcher.add_handler(handle('command', resume))
 
 updater.start_polling()
 print('Bot is start running.')

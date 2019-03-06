@@ -1,7 +1,18 @@
 class Strings:
     FAIL = '失敗，你看看你！'
-    ABORT = '遊戲已中止。'
+    RULE = """
+```
+♠A - 歸零
+ 4 - 迴轉
+ 5 - 指定
+10 - 加十或減十
+ J - 跳過
+ Q - 加廿或減廿
+ K - 九九
+```
+"""
     NEW = '遊戲已建立。'
+    ABORT = '遊戲已中止。'
     ADMIN_JOIN = '請 {} 按 Join 並點 Start 以加入遊戲。'
     JOIN = '請玩家們按 Join 並點 Start 以加入遊戲。'
     JOIN_BUTTON = 'Join'
