@@ -1,4 +1,6 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.error import TimedOut
+from settings import Settings
 from strings import Strings
 
 queue = []
@@ -8,9 +10,14 @@ def enqueue(callback, *args, **kwargs):
 
 def exec():
     global queue
-    for [callback, args, kwargs] in queue:
-        callback(*args, **kwargs)
-    queue = []
+    while len(queue):
+        callback, args, kwargs = queue[0]
+        try:
+            callback(*args, **kwargs)
+        except TimedOut:
+            print('Timed out. Let\'s retry!')
+            continue
+        queue.pop(0)
 
 def handle(handler_type, callback, name = None):
     def handler(bot, update):
