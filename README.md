@@ -15,7 +15,7 @@ $ vim settings.py
 ## Run
 
 ```sh
-$ python bot.py
+$ python main.py
 ```
 
 ## Contributors

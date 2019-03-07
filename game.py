@@ -2,7 +2,7 @@ from enum import Enum
 from random import sample
 from settings import Settings
 from strings import Strings
-from ext import enqueue
+from bot import enqueue, send_message
 from player import Player
 from card import Card
 
@@ -13,10 +13,9 @@ class Game:
         OPEN = 3
         STARTED = 4
 
-    def __init__(self, bot):
+    def __init__(self):
         self.status = self.Status.OFF
         self.players = []
-        self.bot = bot
 
     def new(self, user):
         if self.status is self.Status.OFF:
@@ -48,7 +47,7 @@ class Game:
             del kwargs['without']
             players.remove(player)
         for player in players:
-            enqueue(self.bot.send_message, player.chat.id, text, *args, **kwargs)
+            send_message(player.chat.id, text, *args, **kwargs)
 
     def start(self, user):
         if self.admin.id == user.id and self.status is self.Status.OPEN and len(self.players) >= 2:

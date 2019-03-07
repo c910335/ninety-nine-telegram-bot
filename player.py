@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from settings import Settings
 from strings import Strings
-from ext import enqueue
+from bot import enqueue, send_message, send_group_message
 
 class Player:
     def __init__(self, game, user, chat):
@@ -15,7 +15,7 @@ class Player:
         return ' '.join([str(card) for card in self.hand])
 
     def send_message(self, text, *args, **kwargs):
-        enqueue(self.game.bot.send_message, self.chat.id, text, *args, **kwargs)
+        send_message(self.chat.id, text, *args, **kwargs)
 
     def show_hand(self):
         self.send_message(Strings.HAND.format(self.str_hand()))
@@ -56,7 +56,9 @@ class Player:
     def burst(self):
         self.send_message(Strings.YOU_BURST)
         self.game.send_message(Strings.BURST.format('@' + self.user.username), without = self)
+        send_group_message(Strings.BURST.format('@' + self.user.username))
 
     def win(self):
         self.send_message(Strings.YOU_WIN)
         self.game.send_message(Strings.WIN.format('@' + self.user.username), without = self)
+        send_group_message(Strings.WIN.format('@' + self.user.username))
