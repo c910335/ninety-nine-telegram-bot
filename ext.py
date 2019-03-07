@@ -15,8 +15,7 @@ def exec():
         try:
             callback(*args, **kwargs)
         except TimedOut:
-            print('Timed out. Let\'s retry!')
-            continue
+            print('Timed out, but we should somehow just let it go.')
         queue.pop(0)
 
 def handle(handler_type, callback, name = None):
