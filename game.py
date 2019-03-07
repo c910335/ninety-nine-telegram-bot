@@ -34,12 +34,21 @@ class Game:
 
     def add_player(self, user, chat):
         if self.admin.id == user.id and self.status is self.Status.PREPARING and len(self.players) == 0:
-            self.players.append(Player(self.bot, self, user, chat))
+            self.players.append(Player(self, user, chat))
             self.status = self.Status.OPEN
         elif self.status is self.Status.OPEN and not any(player.user.id == user.id for player in self.players):
-            self.players.append(Player(self.bot, self, user, chat))
+            self.players.append(Player(self, user, chat))
         else:
             raise
+
+    def send_message(self, text, *args, **kwargs):
+        players = self.players.copy()
+        if 'without' in kwargs:
+            player = kwargs['without']
+            del kwargs['without']
+            players.remove(player)
+        for player in players:
+            enqueue(self.bot.send_message, player.chat.id, text, *args, **kwargs)
 
     def start(self, user):
         if self.admin.id == user.id and self.status is self.Status.OPEN and len(self.players) >= 2:
@@ -71,7 +80,7 @@ class Game:
         self.current = (self.current + self.direction) % len(self.players)
         player = self.players[self.current]
         if player.is_available():
-            enqueue(self.bot.send_message, Settings.CHAT_ID, Strings.TURN.format('@' + player.user.username))
+            self.send_message(Strings.TURN.format('@' + player.user.username), without = player)
             player.ask_discharge()
         else:
             player.burst()
@@ -81,7 +90,7 @@ class Game:
             self.next()
 
     def show_value(self):
-        enqueue(self.bot.send_message, Settings.CHAT_ID, Strings.VALUE.format(str(self.value)))
+        self.send_message(Strings.VALUE.format(str(self.value)))
 
     def discharge(self, user, idx):
         player = self.players[self.current]

@@ -25,6 +25,7 @@ class Strings:
     VALUE = '當前數值為：{}'
     TURN = '輪到 {} 出牌了。'
     ASK_DISCHARGE = '請選擇你要出的牌。'
+    YOU_DISCHARGED = '你出的牌是 {}。'
     DISCHARGED = '{} 出的牌是 {}。'
     DRAW = '你抽到的牌是：{}'
     ASK_DESIGNATE = '請選擇指定的對象。'
@@ -33,4 +34,5 @@ class Strings:
     DESIGNATED = '{} 指定 {}。'
     YOU_BURST = '你爆炸了！'
     BURST = '{} 爆炸了！'
+    YOU_WIN = '你獲得勝利！'
     WIN = '{} 獲得勝利！'
