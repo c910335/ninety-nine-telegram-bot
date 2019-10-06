@@ -54,6 +54,8 @@ class Player:
         return card
 
     def burst(self):
+        for card in self.hand:
+            self.game.return_deck(self.card)
         self.send_message(Strings.YOU_BURST)
         self.game.send_message(Strings.BURST.format('@' + self.user.username), without = self)
         send_group_message(Strings.BURST.format('@' + self.user.username))

@@ -7,7 +7,6 @@ from game import Game
 
 game = Game()
 join_message = None
-join_reply_markup = None
 
 def hello(bot, update):
     update.message.reply_text('hello, {}'.format(update.message.from_user.first_name))
@@ -18,25 +17,40 @@ def new(bot, update):
     if update.message.chat.id == Settings.CHAT_ID:
         game.new(update.message.from_user)
         update.message.reply_text(Strings.NEW)
-        join_reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(Strings.JOIN_BUTTON, url = Settings.BOT_URL + '?start=join')]])
-        join_message = bot.send_message(Settings.CHAT_ID, Strings.ADMIN_JOIN.format('@' + update.message.from_user.username), reply_markup = join_reply_markup)
+        join_message = bot.send_message(Settings.CHAT_ID, Strings.ADMIN_JOIN.format('@' + update.message.from_user.username),
+                reply_markup = InlineKeyboardMarkup([[
+                    InlineKeyboardButton(Strings.JOIN_BUTTON, url = Settings.BOT_URL + '?start=join')]]))
 
 def join(bot, update):
-    if update.message.chat.type == 'private' and update.message.text == '/start join':
-        status = game.status
-        game.add_player(update.message.from_user, update.message.chat)
-        enqueue(update.message.reply_text, Strings.JOINED)
-        send_group_message(Strings.NAMED_JOINED.format('@' + update.message.from_user.username))
-        if status is game.Status.PREPARING and game.status is game.Status.OPEN:
-            enqueue(join_message.edit_text, Strings.JOIN, reply_markup = join_reply_markup)
-            send_message(update.message.chat.id, Strings.START,
-                    reply_markup = InlineKeyboardMarkup([[
-                        InlineKeyboardButton(Strings.START_BUTTON, callback_data = 'start')]]))
+    if update.message.chat.type == 'private':
+        if update.message.text == '/start join':
+            status = game.status
+            game.add_player(update.message.from_user, update.message.chat)
+            enqueue(update.message.reply_text, Strings.JOINED)
+            send_group_message(Strings.NAMED_JOINED.format('@' + update.message.from_user.username))
+            if status is game.Status.PREPARING and game.status is game.Status.OPEN:
+                enqueue(join_message.edit_text, Strings.JOIN,
+                        reply_markup = InlineKeyboardMarkup([[
+                            InlineKeyboardButton(Strings.JOIN_BUTTON, url = Settings.BOT_URL + '?start=join'), 
+                            InlineKeyboardButton(Strings.WATCH_BUTTON, url = Settings.BOT_URL + '?start=watch')]]))
+                send_message(update.message.chat.id, Strings.START,
+                        reply_markup = InlineKeyboardMarkup([[
+                            InlineKeyboardButton(Strings.START_BUTTON, callback_data = 'start')]]))
+        elif update.message.text == '/start watch':
+            game.add_audience(update.message.from_user, update.message.chat)
+            enqueue(update.message.reply_text, Strings.WATCHED)
+            send_group_message(Strings.NAMED_WATCHED.format('@' + update.message.from_user.username))
+        else:
+            raise
 
 def abort(bot, update):
     if update.message.chat.id == Settings.CHAT_ID:
         game.abort(update.message.from_user)
         enqueue(update.message.reply_text, Strings.ABORT)
+
+def quit(bot, update):
+    game.quit(update.message.from_user)
+    send_group_message(Strings.QUIT.format('@' + update.message.from_user.username))
 
 def start(bot, update):
     game.start(update.callback_query.from_user)
@@ -63,6 +77,7 @@ add_handler('command', hello)
 add_handler('command', new)
 add_handler('command', abort)
 add_handler('command', join, 'start')
+add_handler('command', quit)
 add_handler('callback_query', start)
 add_handler('command', rule)
 add_handler('callback_query', discharge, '^discharge \d$')

@@ -16,6 +16,7 @@ class Game:
     def __init__(self):
         self.status = self.Status.OFF
         self.players = []
+        self.audiences = []
 
     def new(self, user):
         if self.status is self.Status.OFF:
@@ -25,18 +26,50 @@ class Game:
             raise
 
     def abort(self, user):
-        if self.status is not self.Status.OFF and Settings.ADMIN_ID == user.id or (self.status is self.Status.PREPARING or self.status is self.Status.OPEN) and self.admin.id == user.id:
+        if self.status is not self.Status.OFF and Settings.ADMIN_ID == user.id or self.status is self.Status.PREPARING and self.admin.id == user.id:
             self.status = self.Status.OFF
             self.players = []
+            self.audiences = []
         else:
             raise
+
+    def is_joined(self, user):
+        return any(player.user.id == user.id for player in self.players) or any(audience.user.id == user.id for audience in self.audiences)
 
     def add_player(self, user, chat):
         if self.admin.id == user.id and self.status is self.Status.PREPARING and len(self.players) == 0:
             self.players.append(Player(self, user, chat))
             self.status = self.Status.OPEN
-        elif self.status is self.Status.OPEN and not any(player.user.id == user.id for player in self.players):
+        elif self.status is self.Status.OPEN and not self.is_joined(user):
             self.players.append(Player(self, user, chat))
+        else:
+            raise
+
+    def add_audience(self, user, chat):
+        if self.status is not self.Status.OFF and not self.is_joined(user):
+            self.audiences.append(Player(self, user, chat))
+        else:
+            raise
+
+    def remove_player(self, user):
+        for idx, player in enumerate(self.players):
+            if player.user.id == user.id:
+                del self.players[idx]
+                return True
+
+    def remove_audience(self, user):
+        for idx, audience in enumerate(self.audiences):
+            if audience.user.id == user.id:
+                del self.audiences[idx]
+                return True
+
+    def quit(self, user):
+        if self.status is self.Status.OPEN and self.admin.id != user.id:
+            if not self.remove_player(user) and not self.remove_audience(user):
+                raise
+        elif self.status is self.Status.STARTED:
+            if not self.remove_audience(user):
+                raise
         else:
             raise
 
@@ -48,6 +81,8 @@ class Game:
             players.remove(player)
         for player in players:
             send_message(player.chat.id, text, *args, **kwargs)
+        for audience in self.audiences:
+            send_message(audience.chat.id, text, *args, **kwargs)
 
     def start(self, user):
         if self.admin.id == user.id and self.status is self.Status.OPEN and len(self.players) >= 2:
@@ -84,6 +119,7 @@ class Game:
         else:
             player.burst()
             self.players.pop(self.current)
+            self.audiences.append(player)
             if self.direction == 1:
                 self.current -= 1
             self.next()
