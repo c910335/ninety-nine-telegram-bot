@@ -93,6 +93,7 @@ class Game:
 
     def run(self):
         self.deck = set(Card(self, suit, rank) for suit in range(1, 5) for rank in range(1, 14))
+        self.used_cards = set()
         for player in self.players:
             for _ in range(5):
                 player.draw()
@@ -102,6 +103,8 @@ class Game:
         self.direction = 1
 
     def draw(self):
+        if len(deck) == 0:
+            deck, used_cards = used_cards, deck
         card = sample(self.deck, 1)[0]
         self.deck.remove(card)
         return card
@@ -144,7 +147,7 @@ class Game:
             raise
 
     def return_deck(self, card):
-        self.deck.add(card)
+        self.used_cards.add(card)
 
     def win(self):
         self.players[0].win()
