@@ -146,7 +146,7 @@ class Game:
         else:
             raise
 
-    def return_deck(self, card):
+    def discard(self, card):
         self.used_cards.add(card)
 
     def win(self):
